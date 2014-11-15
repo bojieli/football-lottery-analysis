@@ -29,44 +29,49 @@
 
       <div class="panel panel-primary">
         <div class="panel-heading">
-          <h3 class="panel-title">亚赔</h3>
-        </div>
-        <div class="panel-body row">
-          <div class="col-md-4">
-            <div id="as1" style="height: 400px"></div>
-          </div>
-          <div class="col-md-4">
-            <div id="as2" style="height: 400px"></div>
-          </div>
-          <div class="col-md-4">
-            <div id="as3" style="height: 400px"></div>
-          </div>
-        </div>
-      </div>  
-
-      <div class="panel panel-primary">
-        <div class="panel-heading">
           <h3 class="panel-title">欧赔</h3>
         </div>
         <div class="row">
           <div class="col-md-4">
-            <div id="container" style="height: 400px"></div>
+            <div id="eu_host_win_e" style="height: 400px"></div>
           </div>
           <div class="col-md-4">
-            <div id="container1" style="height: 400px"></div>
+            <div id="eu_draw_e" style="height: 400px"></div>
           </div>
           <div class="col-md-4">
-            <div id="container2" style="height: 400px"></div>
+            <div id="eu_guest_win_e" style="height: 400px"></div>
           </div>
         </div>
       </div>
 
       <div class="panel panel-primary">
         <div class="panel-heading">
+          <h3 class="panel-title">亚盘</h3>
+        </div>
+        <div class="panel-body row">
+          <div class="col-md-4">
+            <div id="as_host_win_e" style="height: 400px"></div>
+          </div>
+          <div class="col-md-4">
+            <div id="as_dish_e" style="height: 400px"></div>
+          </div>
+          <div class="col-md-4">
+            <div id="as_guest_win_e" style="height: 400px"></div>
+          </div>
+        </div>
+      </div>  
+
+      <div class="panel panel-primary">
+        <div class="panel-heading">
           <h3 class="panel-title">近 10 场积分</h3>
         </div>
-        <div class="panel-body">
-          <div id="recent1" style="height: 400px"></div>
+        <div class="panel-body row">
+          <div class="col-md-6">
+            <div id="recent_host_credit" style="height: 400px"></div>
+          </div>
+          <div class="col-md-6">
+            <div id="recent_guest_credit" style="height: 400px"></div>
+          </div>
         </div>
       </div>
         
@@ -76,35 +81,43 @@
         </div>
         <div class="panel-body row">
           <div class="col-md-6">
-            <div id="recent2" style="height: 400px"></div>
+            <div id="recent_host_goal" style="height: 400px"></div>
           </div>
           <div class="col-md-6">
-            <div id="recent3" style="height: 400px"></div>
+            <div id="recent_host_lose" style="height: 400px"></div>
+          </div>
+          <div class="col-md-6">
+            <div id="recent_guest_goal" style="height: 400px"></div>
+          </div>
+          <div class="col-md-6">
+            <div id="recent_guest_goal" style="height: 400px"></div>
           </div>
         </div>
       </div>
 
-      <p><button class="btn btn-primary btn-large">提交分析</button></p>
+      <p><button class="btn btn-primary btn-large" onclick="submit()">提交分析</button></p>
 
       <hr>
 
-      <h2>分析结果</h2>
-      <div class="panel panel-info">
-        <div class="panel-heading">
-          <h3 class="panel-title">统计图</h3>
+      <div id="result" style="display: none">
+        <h2>分析结果</h2>
+        <div class="panel panel-info">
+          <div class="panel-heading">
+            <h3 class="panel-title">统计图</h3>
+          </div>
+          <div id="result-win-lose-graph"></div>
         </div>
-        <div id="result"></div>
-      </div>
 
-      <div class="panel panel-info">
-        <div class="panel-heading">
-          <h3 class="panel-title">详细数据</h3>
-        </div>
-        <div id="fulldata">
-          <table class="table">
-            <tr><th></th><th></th><th></th><th colspan="3">亚盘</th><th colspan="3">欧盘赔率</th><th colspan="2">进球数</th></tr>
-            <tr><th>日期</th><th>主队</th><th>客队</th><th>贴水</th><th>盘口</th><th>贴水</th><th>胜</th><th>平</th><th>负</th><th>主</th><th>客</th></tr>
-          </table>
+        <div class="panel panel-info">
+          <div class="panel-heading">
+            <h3 class="panel-title">详细数据</h3>
+          </div>
+          <div id="fulldata">
+            <table class="table">
+              <tr><th></th><th></th><th></th><th colspan="3">亚盘</th><th colspan="3">欧盘赔率</th><th colspan="2">进球数</th></tr>
+              <tr><th>日期</th><th>主队</th><th>客队</th><th>贴水</th><th>盘口</th><th>贴水</th><th>胜</th><th>平</th><th>负</th><th>主</th><th>客</th></tr>
+            </table>
+          </div>
         </div>
       </div>
       <hr>
@@ -127,232 +140,49 @@
     <script src="highstock/js/modules/exporting.js"></script>
   </body>
 <script type="text/javascript">
+function LoadChart(column, title) {
+    $.getJSON('/api/stats/' + column, function (data) {
+
+        $('#' + column).highcharts('StockChart', {
+            chart: {
+                alignTicks: false
+            },
+
+            rangeSelector: {
+                inputEnabled: $('#' + column).width() > 480,
+                selected: 1
+            },
+
+            title: {
+                text: title,
+            },
+
+            series: [{
+                type: 'column',
+                name: '场数',
+                data: data,
+            }]
+        });
+    });
+}
+
 $(function () {
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
+    LoadChart('eu_host_win_e', '胜');
+    LoadChart('eu_draw_e', '平');
+    LoadChart('eu_guest_win_e', '负');
+    LoadChart('as_host_win_e', '水');
+    LoadChart('as_dish_e', '盘口');
+    LoadChart('as_guest_win_e', '水');
+    LoadChart('recent_host_credit', '主队积分');
+    LoadChart('recent_guest_credit', '客队积分');
+    LoadChart('recent_host_goal', '主队进球数');
+    LoadChart('recent_host_lose', '主队失球数');
+    LoadChart('recent_guest_goal', '客队进球数');
+    LoadChart('recent_guest_lose', '客队失球数');
+});
 
-        $('#as1').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#as1').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '主胜贴水'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
-
-        // create the chart
-        $('#as2').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#container').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '盘口'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
-
-        // create the chart
-        $('#as3').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#container').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '客胜贴水'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
-
-        // create the chart
-        $('#container').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#container').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '胜'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
-
-        // create the chart
-        $('#container1').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#container1').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '平'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
-
-        // create the chart
-        $('#container2').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#container2').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '负'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
-
-        // create the chart
-        $('#recent1').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#recent1').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '积分（胜*3，平*1，负*0）'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
-
-        // create the chart
-        $('#recent2').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#recent2').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '主队进球数'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=aapl-v.json&callback=?', function (data) {
-
-        // create the chart
-        $('#recent3').highcharts('StockChart', {
-            chart: {
-                alignTicks: false
-            },
-
-            rangeSelector: {
-                inputEnabled: $('#recent3').width() > 480,
-                selected: 1
-            },
-
-            title: {
-                text: '客队进球数'
-            },
-
-            series: [{
-                type: 'column',
-                name: '场数',
-                data: data,
-            }]
-        });
-    });
-
-    $('#result').highcharts({
+function ShowResult(data) {
+    $('#result-win-lose-graph').highcharts({
         chart: {
             plotBackgroundColor: null,
             plotBorderWidth: 1,//null,
@@ -380,13 +210,17 @@ $(function () {
         series: [{
             type: 'pie',
             name: '场数',
-            data: [
-                ['胜',   1000000],
-                ['平',   2000000],
-                ['负',   3000000],
-            ]
+            data: data,
         }]
     });
-});
+    $('#result').show();
+}
+
+function submit() {
+    var data = CollectData();
+    $.getJSON('/api/analysis', data, function(data) {
+        ShowResult(data);
+    });
+}
 </script>
 </html>
