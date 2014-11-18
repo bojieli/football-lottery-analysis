@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Jumbotron Template for Bootstrap</title>
+    <title>足彩分析</title>
 
     <!-- Bootstrap core CSS -->
     <link href="dist/css/bootstrap.min.css" rel="stylesheet">
@@ -21,109 +21,206 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-  </head>
-
+    
+    <style>
+        .fix-anchor { display: block; position: relative; top: -70px; visibility: hidden; }
+    </style>
   <body>
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">足彩分析</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse pull-right">
+          <ul class="nav navbar-nav">
+            <li><button class="btn btn-primary btn-large" style="margin-top: 10px" onclick="submit()">提交分析</button></li>
+            <li>&nbsp;</li>
+            <li><button class="btn btn btn-large" style="margin-top: 10px" onclick="clear()">清空筛选条件</button></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="placeholder" style="height: 70px"></div>
+
     <div class="container">
-      <h1>足彩分析</h1>
-
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          <h3 class="panel-title">欧赔</h3>
-        </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div id="eu_host_win_e" style="height: 400px"></div>
-          </div>
-          <div class="col-md-4">
-            <div id="eu_draw_e" style="height: 400px"></div>
-          </div>
-          <div class="col-md-4">
-            <div id="eu_guest_win_e" style="height: 400px"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          <h3 class="panel-title">亚盘</h3>
-        </div>
-        <div class="panel-body row">
-          <div class="col-md-4">
-            <div id="as_host_win_e" style="height: 400px"></div>
-          </div>
-          <div class="col-md-4">
-            <div id="as_dish_e" style="height: 400px"></div>
-          </div>
-          <div class="col-md-4">
-            <div id="as_guest_win_e" style="height: 400px"></div>
-          </div>
-        </div>
-      </div>  
-
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          <h3 class="panel-title">近 10 场积分</h3>
-        </div>
-        <div class="panel-body row">
-          <div class="col-md-6">
-            <div id="recent_host_credit" style="height: 400px"></div>
-          </div>
-          <div class="col-md-6">
-            <div id="recent_guest_credit" style="height: 400px"></div>
-          </div>
-        </div>
-      </div>
-        
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          <h3 class="panel-title">近 10 场进球数</h3>
-        </div>
-        <div class="panel-body row">
-          <div class="col-md-6">
-            <div id="recent_host_goal" style="height: 400px"></div>
-          </div>
-          <div class="col-md-6">
-            <div id="recent_host_lose" style="height: 400px"></div>
-          </div>
-          <div class="col-md-6">
-            <div id="recent_guest_goal" style="height: 400px"></div>
-          </div>
-          <div class="col-md-6">
-            <div id="recent_guest_goal" style="height: 400px"></div>
-          </div>
-        </div>
-      </div>
-
-      <p><button class="btn btn-primary btn-large" onclick="submit()">提交分析</button></p>
-
-      <hr>
-
-      <div id="result" style="display: none">
-        <h2>分析结果</h2>
-        <div class="panel panel-info">
-          <div class="panel-heading">
-            <h3 class="panel-title">统计图</h3>
-          </div>
-          <div id="result-win-lose-graph"></div>
+      <div class="row">
+        <div class="col-md-2">
+          <ul class="nav nav-pills nav-stacked" style="position: fixed">
+              <li><a href="#europe">欧赔</a></li>
+              <li><a href="#asia">亚盘</a></li>
+              <li><a href="#recent-credit">近 10 场积分</a></li>
+              <li><a href="#recent-goal">近 10 场进球数</a></li>
+              <li><a href="#result">分析结果</a></li>
+          </ul>
         </div>
 
-        <div class="panel panel-info">
-          <div class="panel-heading">
-            <h3 class="panel-title">详细数据</h3>
+        <div class="col-md-10">
+          <div id="europe" class="fix-anchor"></div>
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">欧赔<span class="pull-right">（以终赔为准）</span></h3>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <div id="eu_host_win_e" style="height: 400px"></div>
+                <div class="row">
+                  <div class="col-md-2"></div>
+                  <div class="col-md-2"><br>初<br>盘</div>
+                  <div class="col-md-3">
+                     <p><input id="eu_host_win_s_e_lt" type="checkbox" checked /> &lt;</p>
+                     <p><input id="eu_host_win_s_e_eq" type="checkbox" checked /> =</p>
+                     <p><input id="eu_host_win_s_e_gt" type="checkbox" checked /> &gt;</p>
+                  </div> 
+                  <div class="col-md-5"><br>终<br>盘</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div id="eu_draw_e" style="height: 400px"></div>
+                <div class="row">
+                  <div class="col-md-2"></div>
+                  <div class="col-md-2"><br>初<br>盘</div>
+                  <div class="col-md-3">
+                     <p><input id="eu_draw_s_e_lt" type="checkbox" checked /> &lt;</p>
+                     <p><input id="eu_draw_s_e_eq" type="checkbox" checked /> =</p>
+                     <p><input id="eu_draw_s_e_gt" type="checkbox" checked /> &gt;</p>
+                  </div> 
+                  <div class="col-md-5"><br>终<br>盘</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div id="eu_guest_win_e" style="height: 400px"></div>
+                <div class="row">
+                  <div class="col-md-2"></div>
+                  <div class="col-md-2"><br>初<br>盘</div>
+                  <div class="col-md-3">
+                     <p><input id="eu_guest_win_s_e_lt" type="checkbox" checked /> &lt;</p>
+                     <p><input id="eu_guest_win_s_e_eq" type="checkbox" checked /> =</p>
+                     <p><input id="eu_guest_win_s_e_gt" type="checkbox" checked /> &gt;</p>
+                  </div> 
+                  <div class="col-md-5"><br>终<br>盘</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div id="fulldata">
-            <table class="table">
-              <tr><th></th><th></th><th></th><th colspan="3">亚盘</th><th colspan="3">欧盘赔率</th><th colspan="2">进球数</th></tr>
-              <tr><th>日期</th><th>主队</th><th>客队</th><th>贴水</th><th>盘口</th><th>贴水</th><th>胜</th><th>平</th><th>负</th><th>主</th><th>客</th></tr>
-            </table>
+
+          <div id="asia" class="fix-anchor"></div>
+          <div class="panel panel-primary cond">
+            <div class="panel-heading">
+                <h3 class="panel-title">亚盘<span class="pull-right">（以终赔为准）</span></h3>
+            </div>
+            <div class="panel-body row">
+              <div class="col-md-4">
+                <div id="as_host_win_e" style="height: 400px"></div>
+                <div class="row">
+                  <div class="col-md-2"></div>
+                  <div class="col-md-2"><br>初<br>盘</div>
+                  <div class="col-md-3">
+                     <p><input id="as_host_win_s_e_lt" type="checkbox" checked /> &lt;</p>
+                     <p><input id="as_host_win_s_e_eq" type="checkbox" checked /> =</p>
+                     <p><input id="as_host_win_s_e_gt" type="checkbox" checked /> &gt;</p>
+                  </div> 
+                  <div class="col-md-5"><br>终<br>盘</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div id="as_dish_e" style="height: 400px"></div>
+                <div class="row">
+                  <div class="col-md-2"></div>
+                  <div class="col-md-2"><br>初<br>盘</div>
+                  <div class="col-md-3">
+                     <p><input id="as_dish_s_e_lt" type="checkbox" checked /> &lt;</p>
+                     <p><input id="as_dish_s_e_eq" type="checkbox" checked /> =</p>
+                     <p><input id="as_dish_s_e_gt" type="checkbox" checked /> &gt;</p>
+                  </div> 
+                  <div class="col-md-5"><br>终<br>盘</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div id="as_guest_win_e" style="height: 400px"></div>
+                <div class="row">
+                  <div class="col-md-2"></div>
+                  <div class="col-md-2"><br>初<br>盘</div>
+                  <div class="col-md-3">
+                     <p><input id="as_guest_win_s_e_lt" type="checkbox" checked /> &lt;</p>
+                     <p><input id="as_guest_win_s_e_eq" type="checkbox" checked /> =</p>
+                     <p><input id="as_guest_win_s_e_gt" type="checkbox" checked /> &gt;</p>
+                  </div> 
+                  <div class="col-md-5"><br>终<br>盘</div>
+                </div>
+              </div>
+            </div>
+          </div>  
+
+          <div id="recent-credit" class="fix-anchor"></div>
+          <div class="panel panel-primary cond">
+            <div class="panel-heading">
+                <h3 class="panel-title">近 10 场积分<span class="pull-right">（已区分主客场）</span></h3>
+            </div>
+            <div class="panel-body row">
+              <div class="col-md-6">
+                <div id="recent_host_credit" style="height: 400px"></div>
+              </div>
+              <div class="col-md-6">
+                <div id="recent_guest_credit" style="height: 400px"></div>
+              </div>
+            </div>
           </div>
+            
+          <div id="recent-goal" class="fix-anchor"></div>
+          <div class="panel panel-primary cond">
+            <div class="panel-heading">
+                <h3 class="panel-title">近 10 场进球数<span class="pull-right">（已区分主客场）</span></h3>
+            </div>
+            <div class="panel-body row">
+              <div class="col-md-6">
+                <div id="recent_host_goal" style="height: 400px"></div>
+              </div>
+              <div class="col-md-6">
+                <div id="recent_host_lose" style="height: 400px"></div>
+              </div>
+              <div class="col-md-6">
+                <div id="recent_guest_goal" style="height: 400px"></div>
+              </div>
+              <div class="col-md-6">
+                <div id="recent_guest_goal" style="height: 400px"></div>
+              </div>
+            </div>
+          </div>
+
+          <p><button class="btn btn-large btn-primary">提交分析</button></p>
+
+          <hr>
+
+          <div id="result" class="fix-anchor"></div>
+          <div>
+            <h2>分析结果</h2>
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="panel-title">统计图</h3>
+              </div>
+              <div id="result-win-lose-graph">请点击“提交分析”按钮</div>
+            </div>
+
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="panel-title">详细数据</h3>
+              </div>
+              <div id="fulldata">
+                <table class="table">
+                  <tr><th></th><th></th><th></th><th colspan="3">亚盘</th><th colspan="3">欧盘赔率</th><th colspan="2">进球数</th></tr>
+                  <tr><th>日期</th><th>主队</th><th>客队</th><th>贴水</th><th>盘口</th><th>贴水</th><th>胜</th><th>平</th><th>负</th><th>主</th><th>客</th></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
       <hr>
 
       <footer>
-        <p>&copy; USTC 2014</p>
+        <p>&copy; USTC 学术猫 2014</p>
       </footer>
     </div> <!-- /container -->
 
