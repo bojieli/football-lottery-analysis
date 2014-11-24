@@ -35,7 +35,7 @@
           <ul class="nav navbar-nav">
             <li><button class="btn btn-primary btn-large" style="margin-top: 10px" onclick="submit()">提交分析</button></li>
             <li>&nbsp;</li>
-            <li><button class="btn btn btn-large" style="margin-top: 10px" onclick="clear()">清空筛选条件</button></li>
+            <li><button class="btn btn btn-large" style="margin-top: 10px" onclick="clearSelect()">清空筛选条件</button></li>
           </ul>
         </div>
       </div>
@@ -49,8 +49,8 @@
           <ul class="nav nav-pills nav-stacked" style="position: fixed">
               <li><a href="#europe">欧赔</a></li>
               <li><a href="#asia">亚盘</a></li>
-              <li><a href="#recent-credit">近 10 场积分</a></li>
-              <li><a href="#recent-goal">近 10 场进球数</a></li>
+              <li><a href="#recent10-credit">近 10 场积分</a></li>
+              <li><a href="#recent10-goal">近 10 场进球数</a></li>
               <li><a href="#result">分析结果</a></li>
           </ul>
         </div>
@@ -152,43 +152,43 @@
             </div>
           </div>  
 
-          <div id="recent-credit" class="fix-anchor"></div>
+          <div id="recent10-credit" class="fix-anchor"></div>
           <div class="panel panel-primary cond">
             <div class="panel-heading">
                 <h3 class="panel-title">近 10 场积分<span class="pull-right">（已区分主客场）</span></h3>
             </div>
             <div class="panel-body row">
               <div class="col-md-6">
-                <div id="recent_host_credit" style="height: 400px"></div>
+                <div id="recent10_host_credit" style="height: 400px"></div>
               </div>
               <div class="col-md-6">
-                <div id="recent_guest_credit" style="height: 400px"></div>
+                <div id="recent10_guest_credit" style="height: 400px"></div>
               </div>
             </div>
           </div>
             
-          <div id="recent-goal" class="fix-anchor"></div>
+          <div id="recent10-goal" class="fix-anchor"></div>
           <div class="panel panel-primary cond">
             <div class="panel-heading">
                 <h3 class="panel-title">近 10 场进球数<span class="pull-right">（已区分主客场）</span></h3>
             </div>
             <div class="panel-body row">
               <div class="col-md-6">
-                <div id="recent_host_goal" style="height: 400px"></div>
+                <div id="recent10_host_goal" style="height: 400px"></div>
               </div>
               <div class="col-md-6">
-                <div id="recent_host_lose" style="height: 400px"></div>
+                <div id="recent10_host_lose" style="height: 400px"></div>
               </div>
               <div class="col-md-6">
-                <div id="recent_guest_goal" style="height: 400px"></div>
+                <div id="recent10_guest_goal" style="height: 400px"></div>
               </div>
               <div class="col-md-6">
-                <div id="recent_guest_goal" style="height: 400px"></div>
+                <div id="recent10_guest_lose" style="height: 400px"></div>
               </div>
             </div>
           </div>
 
-          <p><button class="btn btn-large btn-primary">提交分析</button></p>
+          <p><button class="btn btn-large btn-primary" onclick="submit()">提交分析</button></p>
 
           <hr>
 
@@ -208,9 +208,19 @@
               </div>
               <div id="fulldata">
                 <table class="table">
-                  <tr><th></th><th></th><th></th><th colspan="3">亚盘</th><th colspan="3">欧盘赔率</th><th colspan="2">进球数</th></tr>
-                  <tr><th>日期</th><th>主队</th><th>客队</th><th>贴水</th><th>盘口</th><th>贴水</th><th>胜</th><th>平</th><th>负</th><th>主</th><th>客</th></tr>
+                  <thead>
+                      <tr><th></th><th></th><th></th><th></th><th colspan="3">亚盘</th><th colspan="3">欧赔</th><th></th><th colspan="2">进球数</th></tr>
+                      <tr><th>联赛</th><th>日期</th><th>主队</th><th>客队</th><th>水</th><th>盘口</th><th>水</th><th>胜</th><th>平</th><th>负</th><th>赛果</th><th>主</th><th>客</th></tr>
+                  </thead>
+                  <tbody></tbody>
                 </table>
+
+                <nav>
+                  <ul class="pager">
+                    <li class="previous"><a onclick="showDataPrev()" style="cursor:pointer"><span aria-hidden="true">&larr;</span> 上一页</a></li>
+                    <li class="next"><a onclick="showDataNext()" style="cursor:pointer">下一页 <span aria-hidden="true">&rarr;</span></a></li>
+                  </ul>
+                </nav>
               </div>
             </div>
           </div>
@@ -237,6 +247,14 @@
     <script src="highstock/js/modules/exporting.js"></script>
   </body>
 <script type="text/javascript">
+function hideZoomBar(chart) {
+    chart.rangeSelector.zoomText.hide();
+    $.each(chart.rangeSelector.buttons, function () {
+        this.hide();
+    });
+    $(chart.rangeSelector.divRelative).hide();
+};
+
 function LoadChart(column, title) {
     $.getJSON('/api/stats/' + column, function (data) {
 
@@ -245,9 +263,19 @@ function LoadChart(column, title) {
                 alignTicks: false
             },
 
+            tooltip: {
+                formatter: function() {
+                    return '<b>' + this.x + '</b> (' + this.y + ' 场)';
+                }
+            },
+
             rangeSelector: {
-                inputEnabled: $('#' + column).width() > 480,
-                selected: 1
+                inputEnabled: 1,
+                inputDateFormat: '%L',
+                inputEditDateFormat: '%L',
+                inputDateParser: function(value) {
+                    return Date.UTC(1970, 0, 1, 0, 0, 0, value);
+                },
             },
 
             title: {
@@ -258,8 +286,18 @@ function LoadChart(column, title) {
                 type: 'column',
                 name: '场数',
                 data: data,
-            }]
+            }],
+
+            xAxis: {
+                labels: {
+                    formatter: function () {
+                        return this.value;
+                    }
+                }
+            },
         });
+        
+        hideZoomBar($('#' + column).highcharts());
     });
 }
 
@@ -270,15 +308,21 @@ $(function () {
     LoadChart('as_host_win_e', '水');
     LoadChart('as_dish_e', '盘口');
     LoadChart('as_guest_win_e', '水');
-    LoadChart('recent_host_credit', '主队积分');
-    LoadChart('recent_guest_credit', '客队积分');
-    LoadChart('recent_host_goal', '主队进球数');
-    LoadChart('recent_host_lose', '主队失球数');
-    LoadChart('recent_guest_goal', '客队进球数');
-    LoadChart('recent_guest_lose', '客队失球数');
+    LoadChart('recent10_host_credit', '主队积分');
+    LoadChart('recent10_guest_credit', '客队积分');
+    LoadChart('recent10_host_goal', '主队进球数');
+    LoadChart('recent10_host_lose', '主队失球数');
+    LoadChart('recent10_guest_goal', '客队进球数');
+    LoadChart('recent10_guest_lose', '客队失球数');
+    clearSelect();
 });
 
 function ShowResult(data) {
+    var chartData = [
+        ['胜', data[0]],
+        ['平', data[1]],
+        ['负', data[2]],
+    ];
     $('#result-win-lose-graph').highcharts({
         chart: {
             plotBackgroundColor: null,
@@ -288,16 +332,13 @@ function ShowResult(data) {
         title: {
             text: '胜平负场数统计'
         },
-        tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-        },
         plotOptions: {
             pie: {
                 allowPointSelect: true,
                 cursor: 'pointer',
                 dataLabels: {
                     enabled: true,
-                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                    format: '<b>{point.name}</b>: {point.y} ({point.percentage:.1f} %)',
                     style: {
                         color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
                     }
@@ -307,17 +348,145 @@ function ShowResult(data) {
         series: [{
             type: 'pie',
             name: '场数',
-            data: data,
-        }]
+            data: chartData,
+        }],
     });
     $('#result').show();
+    window.location = '#result';
+}
+
+var value_fields = [
+        'eu_host_win_e',
+        'eu_draw_e',
+        'eu_guest_win_e',
+        'as_host_win_e',
+        'as_dish_e',
+        'as_guest_win_e',
+        'recent10_host_credit',
+        'recent10_guest_credit',
+        'recent10_host_goal',
+        'recent10_host_lose',
+        'recent10_guest_goal',
+        'recent10_guest_lose',
+    ];
+
+var checkbox_fields = [
+        'eu_host_win_e',
+        'eu_draw_e',
+        'eu_guest_win_e',
+        'as_host_win_e',
+        'as_dish_e',
+        'as_guest_win_e',
+    ];
+
+function CollectData() {
+    var data = {};
+    for (var i in value_fields) {
+        var name = value_fields[i];
+        if (typeof $('#' + name).highcharts() == "object") {
+            data[name + '_min'] = $('#' + name).highcharts().xAxis[0].min;
+            data[name + '_max'] = $('#' + name).highcharts().xAxis[0].max;
+        }
+    }
+    for (var i in checkbox_fields) {
+        var name = checkbox_fields[i];
+        var suffixes = ['_lt_s', '_eq_s', '_gt_s'];
+        for (var j in suffixes) {
+            var suffix = suffixes[j];
+            if (typeof $('#' + name + suffix) == "object") {
+                data[name + suffix] = $('#' + name + suffix).prop('checked');
+            }
+        }
+    }
+    return data;
+}
+
+function ShowFullData(data_arr) {
+    noMoreData = (data_arr.length == 0);
+    var html = '';
+    for (var i in data_arr) {
+        var data = data_arr[i];
+        html += '<tr>'
+            + '<td>' + data.type + '</td>'
+            + '<td>' + data.date.split('T')[0] + '</td>'
+            + '<td>' + data.host_team + '</td>'
+            + '<td>' + data.guest_team + '</td>'
+            + '<td>' + data.as_host_win_e + '</td>'
+            + '<td>' + data.as_dish_e + '</td>'
+            + '<td>' + data.as_guest_win_e + '</td>'
+            + '<td>' + data.eu_host_win_e + '</td>'
+            + '<td>' + data.eu_draw_e + '</td>'
+            + '<td>' + data.eu_guest_win_e + '</td>'
+            + '<td>' + (data.result == 1 ? '主胜' : (data.result == 0 ? '平' : '客胜')) + '</td>'
+            + '<td>' + data.score_host + '</td>'
+            + '<td>' + data.score_guest + '</td>'
+            + '</tr>';
+    }
+    $('#fulldata table tbody').html(html);
+}
+
+var select_cond = null;
+var noMoreData = false;
+var dataEntriesPerPage = 10;
+function showDataPrev() {
+    if (select_cond && select_cond.limit_start >= dataEntriesPerPage) {
+        select_cond.limit_start -= dataEntriesPerPage;
+        loadAndShowData(select_cond);
+    }
+}
+
+function showDataNext() {
+    if (select_cond && !noMoreData) {
+        select_cond.limit_start += dataEntriesPerPage;
+        loadAndShowData(select_cond);
+    }
+}
+
+function loadAndShowData(data) {
+    $.ajax({
+        type: "POST",
+        url: '/api/analysis/showData',
+        data: JSON.stringify(data),
+        success: ShowFullData,
+        dataType: "json",
+    });
 }
 
 function submit() {
     var data = CollectData();
-    $.getJSON('/api/analysis', data, function(data) {
-        ShowResult(data);
+    console.log(data);
+    $.ajax({
+        type: "POST",
+        url: '/api/analysis/stats',
+        data: JSON.stringify(data),
+        success: ShowResult,
+        dataType: "json",
     });
+
+    data.limit_start = 0;
+    data.limit_num = dataEntriesPerPage;
+    loadAndShowData(data);
+    select_cond = data;
+}
+
+function clearSelect() {
+    for (var i in value_fields) {
+        var name = value_fields[i];
+        if (typeof $('#' + name).highcharts() == "object") {
+            var obj = $('#' + name).highcharts().xAxis[0];
+            obj.setExtremes(obj.dataMin, obj.dataMax);
+        }
+    }
+    for (var i in checkbox_fields) {
+        var name = checkbox_fields[i];
+        var suffixes = ['_lt_s', '_eq_s', '_gt_s'];
+        for (var j in suffixes) {
+            var suffix = suffixes[j];
+            if (typeof $('#' + name + suffix) == "object") {
+                $('#' + name + suffix).prop('checked', true);
+            }
+        }
+    }
 }
 </script>
 </html>
