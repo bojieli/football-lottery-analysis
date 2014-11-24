@@ -47,8 +47,8 @@ CREATE FUNCTION real_team_name (name VARCHAR(40) CHARACTER SET utf8)
 INSERT INTO caipiao.bet365 SELECT
     type,
     date,
-    real_team_name(host_team),
-    real_team_name(eu_guest_team),
+    real_team_name(real_team_name(host_team)),
+    real_team_name(real_team_name(eu_guest_team)),
     if(eu_win_lose = '主胜', 1, if(eu_win_lose = '客胜', -1, 0)),
     if(eu_win_lose = '主胜', 3, if(eu_win_lose = '客胜', 0, 1)),
     if(eu_win_lose = '主胜', 0, if(eu_win_lose = '客胜', 3, 1)),
