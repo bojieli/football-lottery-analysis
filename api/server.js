@@ -346,6 +346,7 @@ mysql.pool.getConnection(function(err, conn) {
         http.createServer(http_server).listen(config.listen_port, config.listen_host);
         console.log("Listening on " + config.listen_host + ":" + config.listen_port);
         loadStats();
+        setInterval(loadStats, 60 * 60 * 1000); // reload stats every hour
     } catch(e) {
         console.log("Failed to create HTTP server on port " + config.listen_port);
         console.log(e);
