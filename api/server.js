@@ -84,6 +84,13 @@ try {
 }
 }
 
+function as_dish_tostring(n) {
+    if (n % 50 == 0)
+        return n / 100.0;
+    else
+        return (n - n%50) / 100.0 + '/' + (n / 10.0);
+}
+
 function route(pathname, headers, params, postdata, response) {
 try {
     var tablename = config.tablename;
@@ -92,7 +99,8 @@ try {
     if (typeof uri[1] != "string")
         response.returnCode(404);
 
-    switch (uri[1]) {
+    var opcode = uri[1];
+    switch (opcode) {
     case 'stats':
         if (stats_cache[uri[2]]) {
             var stat = stats_cache[uri[2]];
@@ -103,19 +111,53 @@ try {
             response.returnCode(404);
         break;
     case 'analysis':
-        if (postdata == null || postdata.length == 0)
+        if (postdata == null || postdata.length == 0) {
             response.returnCode(400);
-        var sql = "SELECT result, COUNT(*) as c from " + tablename + " WHERE "
+            return;
+        }
+
+        var select_columns = '';
+        var groupby = '';
+        var limit = '';
+        var sub_opcode = uri[2];
+        switch (sub_opcode) {
+            case "stats":
+                select_columns = "result, COUNT(*) as c";
+                groupby = 'result';
+                break;
+            case "showData":
+                select_columns = "*";
+                if (typeof postdata.limit_num != "undefined") {
+                    limit = parseInt(postdata.limit_num);
+                    // security: never show more than 100 entries
+                    if (limit > 100)
+                        limit = 100;
+                    if (limit < 1)
+                        limit = 1;
+                    if (typeof postdata.limit_start != "undefined") {
+                        var start = parseInt(postdata.limit_start);
+                        if (start < 0)
+                            response.returnCode(400);
+                        limit = start + ',' + limit;
+                    }
+                }
+                break;
+            default:
+                response.returnCode(400);
+                return;
+        }
+        var sql = "SELECT " + select_columns + " from " + tablename + " WHERE "
             + gen_sql_analysis_cond(postdata, [
                     'eu_host_win_e',
                     'eu_draw_e',
                     'eu_guest_win_e',
                     'as_host_win_e',
+                    'as_dish_e',
                     'as_guest_win_e',
               ])
             + " AND "
-            + gen_sql_analysis_in_set(postdata, 'as_dish_e')
-            + " AND "
+            //+ gen_sql_analysis_in_set(postdata, 'as_dish_e')
+            //+ " AND "
             + gen_sql_analysis_recent(postdata, [
                     'recent10_host_credit',
                     'recent10_guest_credit',
@@ -124,7 +166,8 @@ try {
                     'recent10_guest_goal',
                     'recent10_guest_lose',
               ])
-            + " GROUP BY result";
+            + (groupby ? " GROUP BY " + groupby : "")
+            + (limit ? " LIMIT " + limit : "");
         console.log(sql);
         db.query(sql, function(err, data) {
             if (err) {
@@ -132,16 +175,24 @@ try {
                 return;
             }
 
-            var retarr = [0, 0, 0];
-            for (var i in data) {
-                if (data[i].result == 1)
-                    retarr[0] = data[i].c;
-                if (data[i].result == 0)
-                    retarr[1] = data[i].c;
-                if (data[i].result == -1)
-                    retarr[2] = data[i].c;
+            if (sub_opcode == "stats") {
+                var retarr = [0, 0, 0];
+                for (var i in data) {
+                    if (data[i].result == 1)
+                        retarr[0] = data[i].c;
+                    if (data[i].result == 0)
+                        retarr[1] = data[i].c;
+                    if (data[i].result == -1)
+                        retarr[2] = data[i].c;
+                }
+                response.returnJSON(retarr);
             }
-            response.returnJSON(retarr);
+            else if (sub_opcode == "showData") {
+                for (var i in data) {
+                    data[i].as_dish_e = as_dish_tostring(data[i].as_dish_e);
+                }
+                response.returnJSON(data);
+            }
         });
         break;
     default:
@@ -161,9 +212,10 @@ function http_server(request, response) {
             msg = msg.toString();
         if (typeof msg !== "string")
             msg = "";
-        console.log("Response: HTTP " + code + " (" + msg.length + " bytes, " + (new Date() - response.requestTime) + " ms)");
-        this.writeHeader(code, {'Content-Length': msg.length });
-        this.write(msg);
+        var buf = new Buffer(msg, 'utf8');
+        console.log("Response: HTTP " + code + " (" + buf.length + " bytes, " + (new Date() - response.requestTime) + " ms)");
+        this.writeHeader(code, {'Content-Length': buf.length });
+        this.write(buf);
         this.end();
     }
     response.except = function(e) {
