@@ -38,10 +38,10 @@ CREATE FUNCTION real_team_name (name VARCHAR(40) CHARACTER SET utf8)
     RETURN trim(
     if(instr(name, '[') > 0,
         substr(name, 1, instr(name, '[')-1),
-        if(instr(name, '（'),
-            substr(name, 0, instr(name, '（')-1),
-            if(instr(name, '('),
-                substr(name, 0, instr(name, '(')-1),
+        if(instr(name, '（') > 0,
+            substr(name, 1, instr(name, '（')-1),
+            if(instr(name, '(') > 0,
+                substr(name, 1, instr(name, '(')-1),
                 name))));
 
 INSERT INTO caipiao.bet365 SELECT
