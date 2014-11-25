@@ -127,19 +127,20 @@ try {
                 break;
             case "showData":
                 select_columns = "*";
+
                 if (typeof postdata.limit_num != "undefined") {
                     limit = parseInt(postdata.limit_num);
-                    // security: never show more than 100 entries
-                    if (limit > 100)
-                        limit = 100;
-                    if (limit < 1)
-                        limit = 1;
-                    if (typeof postdata.limit_start != "undefined") {
-                        var start = parseInt(postdata.limit_start);
-                        if (start < 0)
-                            response.returnCode(400);
-                        limit = start + ',' + limit;
-                    }
+                }
+                // security: never show more than 100 entries
+                if (limit > 100)
+                    limit = 100;
+                if (limit < 1)
+                    limit = 1;
+                if (typeof postdata.limit_start != "undefined") {
+                    var start = parseInt(postdata.limit_start);
+                    if (start < 0)
+                        response.returnCode(400);
+                    limit = start + ',' + limit;
                 }
                 break;
             default:
