@@ -85,10 +85,10 @@ try {
 }
 
 function as_dish_tostring(n) {
-    if (n % 50 == 0)
-        return n / 100.0;
+    if (n % 500 == 0)
+        return n / 1000.0;
     else
-        return (n - n%50) / 100.0 + '/' + (n / 10.0);
+        return (n - n % 500) / 1000.0 + '/' + (n / 10.0);
 }
 
 function route(pathname, headers, params, postdata, response) {

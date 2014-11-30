@@ -17,10 +17,10 @@ CREATE TABLE caipiao.bet365 (
     score_guest TINYINT(2) not null,       -- 全场客队
     score_host_h TINYINT(2) not null,      -- 上半场主队
     score_guest_h TINYINT(2) not null,     -- 上半场客队
-    as_dish_s SMALLINT(4),                 -- 盘口 = 第一个数字 * 100 + 第二个数字，例如 0.5/1 就是 0.5*100+1，1 就是 1*100
+    as_dish_s SMALLINT(5),                 -- 盘口 = 第一个数字 * 100 + 第二个数字，例如 0.5/1 就是 0.5*100+1，1 就是 1*100
     as_guest_win_s DECIMAL(5,3),
     as_host_win_s DECIMAL(5,3),
-    as_dish_e SMALLINT(4),
+    as_dish_e SMALLINT(5),
     as_guest_win_e DECIMAL(5,3),
     as_host_win_e DECIMAL(5,3),
 
@@ -65,13 +65,13 @@ INSERT INTO caipiao.bet365 SELECT
                 instr(eu_score, ')') - instr(eu_score, '(') - instr(substr(eu_score, instr(eu_score, '(')), '-')),
                 -- score_guest_h
     if (instr(as_dish_s, '/') = 0,
-        cast(as_dish_s as decimal(3,1)) * 100,
-        cast(substr(as_dish_s, 0, instr(as_dish_s, '/') - 1) as decimal(3,1)) * 100 + cast(substr(as_dish_s, instr(as_dish_s, '/') + 1) as decimal(3,1)) * 10), -- as_dish_s
+        cast(as_dish_s as decimal(3,1)) * 1000,
+        cast(substr(as_dish_s, 1, instr(as_dish_s, '/') - 1) as decimal(3,1)) * 1000 + cast(substr(as_dish_s, instr(as_dish_s, '/') + 1) as decimal(3,1)) * 10), -- as_dish_s
     as_guest_win_s,
     as_host_win_s,
     if (instr(as_dish_e, '/') = 0,
-        cast(as_dish_e as decimal(3,1)) * 100,
-        cast(substr(as_dish_e, 0, instr(as_dish_e, '/') - 1) as decimal(3,1)) * 100 + cast(substr(as_dish_e, instr(as_dish_e, '/') + 1) as decimal(3,1)) * 10), -- as_dish_e
+        cast(as_dish_e as decimal(3,1)) * 1000,
+        cast(substr(as_dish_e, 1, instr(as_dish_e, '/') - 1) as decimal(3,1)) * 1000 + cast(substr(as_dish_e, instr(as_dish_e, '/') + 1) as decimal(3,1)) * 10), -- as_dish_e
     as_guest_win_e,
     as_host_win_e,
     0, 0, 0, 0, 0, 0 -- recent
