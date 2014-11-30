@@ -156,6 +156,13 @@ try {
         }
         var sql = "SELECT " + select_columns + " from " + tablename + " WHERE "
             + gen_sql_analysis_cond(postdata, [
+                    'eu_host_win_s',
+                    'eu_draw_s',
+                    'eu_guest_win_s',
+                    'as_host_win_s',
+                    'as_dish_s',
+                    'as_guest_win_s',
+
                     'eu_host_win_e',
                     'eu_draw_e',
                     'eu_guest_win_e',
@@ -197,6 +204,7 @@ try {
             }
             else if (sub_opcode == "showData") {
                 for (var i in data) {
+                    data[i].as_dish_s = as_dish_tostring(data[i].as_dish_s);
                     data[i].as_dish_e = as_dish_tostring(data[i].as_dish_e);
                 }
                 response.returnJSON(data);
