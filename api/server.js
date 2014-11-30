@@ -87,8 +87,15 @@ try {
 function as_dish_tostring(n) {
     if (n % 500 == 0)
         return n / 1000.0;
-    else
-        return (n - n % 500) / 1000.0 + '/' + (n / 10.0);
+    else {
+        var negative = false;
+        if (n < 0) {
+            negative = true;
+            n = -n;
+        }
+        var real = (n - n % 500) / 1000.0;
+        return (negative ? '-' : '') + real + '/' + (n % 500) / 10.0);
+    }
 }
 
 function route(pathname, headers, params, postdata, response) {

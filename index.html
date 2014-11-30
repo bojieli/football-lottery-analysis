@@ -333,8 +333,19 @@ function LoadChart(column, title) {
 function as_dish_to_string(n) {
     if (n % 500 == 0)
         return n / 1000.0;
-    else
-        return (n - n % 500) / 1000.0 + '/' + (n / 10.0);
+    else {
+        var negative = false;
+        if (n < 0) {
+            negative = true;
+            n = -n;
+        }
+        var real = (n - n % 500) / 1000.0;
+        var img = '';
+        n = n % 500;
+        if (n / 10.0 < real + 5) // eliminate too large dishes
+            img = '/' + (n / 10.0);
+        return (negative ? '-' : '') + real + img;
+    }
 }
 
 function LoadDishChart(column, title) {
