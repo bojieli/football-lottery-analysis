@@ -199,7 +199,20 @@
               <div class="panel-heading">
                 <h3 class="panel-title">统计图</h3>
               </div>
-              <div id="result-win-lose-graph">请点击“提交分析”按钮</div>
+              <div id="result-win-lose-graph">
+                  <div id="result-hint" class="alert alert-warning" role="alert">
+                      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                      <span class="sr-only">Hint</span>
+                      请选择合适的筛选条件，并点击 “提交分析” 按钮。
+                  </div>
+              </div>
+              <div style="display:none">
+                  <div id="result-nodata" class="alert alert-danger" role="alert">
+                      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                      <span class="sr-only">Error:</span>
+                      抱歉，没有找到符合筛选条件的场次，请尝试修改筛选条件。
+                  </div>
+              </div>
             </div>
 
             <div class="panel panel-info">
@@ -248,7 +261,6 @@
   </body>
 <script type="text/javascript">
 function hideZoomBar(chart) {
-    chart.rangeSelector.zoomText.hide();
     $.each(chart.rangeSelector.buttons, function () {
         this.hide();
     });
@@ -400,6 +412,10 @@ $(function () {
 });
 
 function ShowResult(data) {
+    if (data[0] == 0 && data[1] == 0 && data[2] == 0) {
+        $('#result-win-lose-graph').html($('#result-nodata').clone());
+        return;
+    }
     var chartData = [
         ['胜', data[0]],
         ['平', data[1]],
