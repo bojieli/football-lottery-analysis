@@ -258,6 +258,10 @@ function hideZoomBar(chart) {
 function LoadChart(column, title) {
     $.getJSON('/api/stats/' + column, function (data) {
 
+        for (i in data) {
+            data[i][0] = data[i][0] * 1000;
+        }
+
         $('#' + column).highcharts('StockChart', {
             chart: {
                 alignTicks: false
@@ -265,16 +269,16 @@ function LoadChart(column, title) {
 
             tooltip: {
                 formatter: function() {
-                    return '<b>' + this.x + '</b> (' + this.y + ' 场)';
+                    return '<b>' + (this.x / 1000.0) + '</b> (' + this.y + ' 场)';
                 }
             },
 
             rangeSelector: {
                 inputEnabled: 1,
-                inputDateFormat: '%L',
-                inputEditDateFormat: '%L',
+                inputDateFormat: '%S.%L',
+                inputEditDateFormat: '%S.%L',
                 inputDateParser: function(value) {
-                    return Date.UTC(1970, 0, 1, 0, 0, 0, value);
+                    return value * 1000;
                 },
             },
 
@@ -290,11 +294,89 @@ function LoadChart(column, title) {
 
             xAxis: {
                 labels: {
+                    maxStaggerLines: 1,
                     formatter: function () {
-                        return this.value;
+                        return this.value / 1000.0;
                     }
                 }
             },
+
+            navigator: {
+                xAxis: {
+                    labels: {
+                        formatter: function () {
+                            return this.value / 1000.0;
+                        }
+                    }
+                }
+            },
+
+            credits: {enabled: false},
+        });
+        
+        hideZoomBar($('#' + column).highcharts());
+    });
+}
+
+function as_dish_to_string(n) {
+    if (n % 500 == 0)
+        return n / 1000.0;
+    else
+        return (n - n % 500) / 1000.0 + '/' + (n / 10.0);
+}
+
+function LoadDishChart(column, title) {
+    $.getJSON('/api/stats/' + column, function (data) {
+
+        for (i in data) {
+            data[i][0] = data[i][0] * 1000;
+        }
+
+        $('#' + column).highcharts('StockChart', {
+            chart: {
+                alignTicks: false
+            },
+
+            tooltip: {
+                formatter: function() {
+                    return '<b>' + (as_dish_to_string(this.x / 1000.0)) + '</b> (' + this.y + ' 场)';
+                }
+            },
+
+            rangeSelector: {
+                enabled: false,
+            },
+
+            title: {
+                text: title,
+            },
+
+            series: [{
+                type: 'column',
+                name: '场数',
+                data: data,
+            }],
+
+            xAxis: {
+                labels: {
+                    maxStaggerLines: 1,
+                    formatter: function () {
+                        return as_dish_to_string(this.value / 1000.0);
+                    }
+                }
+            },
+
+            navigator: {
+                xAxis: {
+                    labels: {
+                        formatter: function () {
+                            return as_dish_to_string(this.value / 1000.0);
+                        }
+                    }
+                }
+            },
+
+            credits: {enabled: false},
         });
         
         hideZoomBar($('#' + column).highcharts());
@@ -306,7 +388,7 @@ $(function () {
     LoadChart('eu_draw_e', '平');
     LoadChart('eu_guest_win_e', '负');
     LoadChart('as_host_win_e', '水');
-    LoadChart('as_dish_e', '盘口');
+    LoadDishChart('as_dish_e', '盘口');
     LoadChart('as_guest_win_e', '水');
     LoadChart('recent10_host_credit', '主队积分');
     LoadChart('recent10_guest_credit', '客队积分');
@@ -350,6 +432,7 @@ function ShowResult(data) {
             name: '场数',
             data: chartData,
         }],
+        credits: {enabled: false},
     });
     $('#result').show();
     window.location = '#result';
