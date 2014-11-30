@@ -24,6 +24,9 @@
     
     <style>
         .fix-anchor { display: block; position: relative; top: -70px; visibility: hidden; }
+        .table td.rightcell, .table th.rightcell { text-align: right; }
+        .table td.centercell, .table th.centercell { text-align: center; }
+        .table td { vertical-align: middle !important; }
     </style>
   <body>
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -222,8 +225,17 @@
               <div id="fulldata">
                 <table class="table">
                   <thead>
-                      <tr><th></th><th></th><th></th><th></th><th colspan="3">亚盘</th><th colspan="3">欧赔</th><th></th><th colspan="2">进球数</th></tr>
-                      <tr><th>联赛</th><th>日期</th><th>主队</th><th>客队</th><th>水</th><th>盘口</th><th>水</th><th>胜</th><th>平</th><th>负</th><th>赛果</th><th>主</th><th>客</th></tr>
+                      <tr>
+                          <th></th><th></th><th></th><th></th><th></th>
+                          <th colspan="3" class="centercell">亚盘</th>
+                          <th colspan="3" class="centercell">欧赔</th>
+                          <th></th><th colspan="2" class="centercell">进球数</th></tr>
+                      <tr>
+                          <th>#</th><th>联赛</th><th>日期</th><th>主队</th><th>客队</th>
+                          <th class="rightcell">水</th><th class="rightcell">盘口</th><th class="rightcell">水</th>
+                          <th class="rightcell">胜</th><th class="rightcell">平</th><th class="rightcell">负</th>
+                          <th class="centercell">赛果</th><th>主</th><th>客</th>
+                      </tr>
                   </thead>
                   <tbody></tbody>
                 </table>
@@ -261,6 +273,9 @@
   </body>
 <script type="text/javascript">
 function hideZoomBar(chart) {
+    if (typeof chart.rangeSelector != "object")
+        return;
+    chart.rangeSelector.zoomText.hide();
     $.each(chart.rangeSelector.buttons, function () {
         this.hide();
     });
@@ -324,6 +339,7 @@ function LoadChart(column, title) {
             },
 
             credits: {enabled: false},
+            exporting: {enabled: false},
         });
         
         hideZoomBar($('#' + column).highcharts());
@@ -400,6 +416,7 @@ function LoadDishChart(column, title) {
             },
 
             credits: {enabled: false},
+            exporting: {enabled: false},
         });
         
         hideZoomBar($('#' + column).highcharts());
@@ -460,6 +477,7 @@ function ShowResult(data) {
             data: chartData,
         }],
         credits: {enabled: false},
+        exporting: {enabled: false},
     });
     $('#result').show();
     window.location = '#result';
@@ -494,8 +512,8 @@ function CollectData() {
     for (var i in value_fields) {
         var name = value_fields[i];
         if (typeof $('#' + name).highcharts() == "object") {
-            data[name + '_min'] = $('#' + name).highcharts().xAxis[0].min;
-            data[name + '_max'] = $('#' + name).highcharts().xAxis[0].max;
+            data[name + '_min'] = $('#' + name).highcharts().xAxis[0].min / 1000.0;
+            data[name + '_max'] = $('#' + name).highcharts().xAxis[0].max / 1000.0;
         }
     }
     for (var i in checkbox_fields) {
@@ -511,33 +529,47 @@ function CollectData() {
     return data;
 }
 
+var select_cond = null;
+var noMoreData = false;
+var dataEntriesPerPage = 10;
+
 function ShowFullData(data_arr) {
     noMoreData = (data_arr.length == 0);
     var html = '';
     for (var i in data_arr) {
         var data = data_arr[i];
         html += '<tr>'
-            + '<td>' + data.type + '</td>'
-            + '<td>' + data.date.split('T')[0] + '</td>'
-            + '<td>' + data.host_team + '</td>'
-            + '<td>' + data.guest_team + '</td>'
-            + '<td>' + data.as_host_win_e + '</td>'
-            + '<td>' + data.as_dish_e + '</td>'
-            + '<td>' + data.as_guest_win_e + '</td>'
-            + '<td>' + data.eu_host_win_e + '</td>'
-            + '<td>' + data.eu_draw_e + '</td>'
-            + '<td>' + data.eu_guest_win_e + '</td>'
-            + '<td>' + (data.result == 1 ? '主胜' : (data.result == 0 ? '平' : '客胜')) + '</td>'
-            + '<td>' + data.score_host + '</td>'
-            + '<td>' + data.score_guest + '</td>'
+            + '<td rowspan="2">' + (parseInt(select_cond.limit_start) + parseInt(i) + 1) + '</td>'
+            + '<td rowspan="2">' + data.type + '</td>'
+            + '<td rowspan="2">' + data.date.split('T')[0] + '</td>'
+            + '<td rowspan="2">' + data.host_team + '</td>'
+            + '<td rowspan="2">' + data.guest_team + '</td>'
+            + '<td class="rightcell">' + data.as_host_win_s + '</td>'
+            + '<td class="rightcell">' + data.as_dish_s + '</td>'
+            + '<td class="rightcell">' + data.as_guest_win_s + '</td>'
+            + '<td class="rightcell">' + data.eu_host_win_s + '</td>'
+            + '<td class="rightcell">' + data.eu_draw_s + '</td>'
+            + '<td class="rightcell">' + data.eu_guest_win_s + '</td>'
+            + '<td class="centercell" rowspan="2"><strong>' + 
+                (data.result == 1 ? '<span style="color:red">主胜</span>' : 
+                 (data.result == 0 ? '平' : 
+                  '<span style="color:green">客胜</span>'))
+                + '</strong></td>'
+            + '<td class="rightcell" rowspan="2">' + data.score_host + '</td>'
+            + '<td class="rightcell" rowspan="2">' + data.score_guest + '</td>'
+            + '</tr>'
+            + '<tr>'
+            + '<td class="rightcell">' + data.as_host_win_e + '</td>'
+            + '<td class="rightcell">' + data.as_dish_e + '</td>'
+            + '<td class="rightcell">' + data.as_guest_win_e + '</td>'
+            + '<td class="rightcell">' + data.eu_host_win_e + '</td>'
+            + '<td class="rightcell">' + data.eu_draw_e + '</td>'
+            + '<td class="rightcell">' + data.eu_guest_win_e + '</td>'
             + '</tr>';
     }
     $('#fulldata table tbody').html(html);
 }
 
-var select_cond = null;
-var noMoreData = false;
-var dataEntriesPerPage = 10;
 function showDataPrev() {
     if (select_cond && select_cond.limit_start >= dataEntriesPerPage) {
         select_cond.limit_start -= dataEntriesPerPage;
@@ -552,11 +584,11 @@ function showDataNext() {
     }
 }
 
-function loadAndShowData(data) {
+function loadAndShowData(cond) {
     $.ajax({
         type: "POST",
         url: '/api/analysis/showData',
-        data: JSON.stringify(data),
+        data: JSON.stringify(cond),
         success: ShowFullData,
         dataType: "json",
     });
