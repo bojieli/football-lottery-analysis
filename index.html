@@ -203,17 +203,17 @@
                 <h3 class="panel-title">统计图</h3>
               </div>
               <div id="result-win-lose-graph">
-                  <div id="result-hint" class="alert alert-warning" role="alert">
+                  <div class="alert alert-warning" role="alert">
                       <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
                       <span class="sr-only">Hint</span>
-                      请选择合适的筛选条件，并点击 “提交分析” 按钮。
+                      <span class="text">请选择合适的筛选条件，并点击 “提交分析” 按钮。</span>
                   </div>
               </div>
               <div style="display:none">
                   <div id="result-nodata" class="alert alert-danger" role="alert">
                       <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
                       <span class="sr-only">Error:</span>
-                      抱歉，没有找到符合筛选条件的场次，请尝试修改筛选条件。
+                      <span class="text">抱歉，没有找到符合筛选条件的场次，请尝试修改筛选条件。</span>
                   </div>
               </div>
             </div>
@@ -223,6 +223,13 @@
                 <h3 class="panel-title">详细数据</h3>
               </div>
               <div id="fulldata">
+                <div id="result-total">
+                  <div class="alert alert-warning" role="alert">
+                      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                      <span class="sr-only">Hint</span>
+                      <span class="text">请选择合适的筛选条件，并点击 “提交分析” 按钮。</span>
+                  </div>
+                </div>
                 <table class="table">
                   <thead>
                       <tr>
@@ -242,8 +249,12 @@
 
                 <nav>
                   <ul class="pager">
-                    <li class="previous"><a onclick="showDataPrev()" style="cursor:pointer"><span aria-hidden="true">&larr;</span> 上一页</a></li>
-                    <li class="next"><a onclick="showDataNext()" style="cursor:pointer">下一页 <span aria-hidden="true">&rarr;</span></a></li>
+                    <li class="previous">
+                      <a id="result-fulldata-prev" style="display: none; cursor: pointer" onclick="showDataPrev()"><span aria-hidden="true">&larr;</span> 上一页</a>
+                    </li>
+                    <li class="next">
+                      <a id="result-fulldata-next" style="display: none; cursor: pointer" onclick="showDataNext()">下一页 <span aria-hidden="true">&rarr;</span></a>
+                    </li>
                   </ul>
                 </nav>
               </div>
@@ -311,8 +322,8 @@ function LoadChart(column, title) {
 
             rangeSelector: {
                 inputEnabled: 1,
-                inputDateFormat: (intval ? '%L' : '%S.%L'),
-                inputEditDateFormat: (intval ? '%L' : '%S.%L'),
+                inputDateFormat: (intval ? '%o' : '%s.%l'),
+                inputEditDateFormat: (intval ? '%o' : '%s.%l'),
                 inputDateParser: function(value) {
                     return (intval ? value : value * 1000);
                 },
@@ -329,9 +340,8 @@ function LoadChart(column, title) {
             }],
 
             xAxis: {
-                minRange: 0.9,
+                minRange: 0.5,
                 labels: {
-                    maxStaggerLines: 1,
                     formatter: function () {
                         return (intval ? this.value : this.value / 1000.0);
                     }
@@ -433,7 +443,29 @@ function LoadDishChart(column, title) {
     });
 }
 
+function InitChart() {
+    Highcharts.dateFormats = {
+        l: function (timestamp) {
+            timestamp = Math.floor(timestamp);
+            var str = '';
+            str = timestamp % 10 + str;
+            timestamp = Math.floor(timestamp / 10);
+            str = timestamp % 10 + str;
+            timestamp = Math.floor(timestamp / 10);
+            str = timestamp % 10 + str;
+            return str;
+        },
+        o: function (timestamp) {
+            return Math.floor(timestamp);
+        },
+        s: function (timestamp) {
+            return Math.floor(timestamp / 1000);
+        },
+    };
+}
+
 $(function () {
+    InitChart();
     LoadChart('eu_host_win_e', '胜');
     LoadChart('eu_draw_e', '平');
     LoadChart('eu_guest_win_e', '负');
@@ -452,6 +484,7 @@ $(function () {
 function ShowResult(data) {
     if (data[0] == 0 && data[1] == 0 && data[2] == 0) {
         $('#result-win-lose-graph').html($('#result-nodata').clone());
+        $('#result-total').html($('#result-nodata').clone());
         return;
     }
     var chartData = [
@@ -489,6 +522,10 @@ function ShowResult(data) {
         credits: {enabled: false},
         exporting: {enabled: false},
     });
+    var total = data[0] + data[1] + data[2];
+    $('#result-total span.text').html('共找到符合条件的比赛 <span id="result-total-count">' + total + '</span> 场');
+    enablePrevNextButtons();
+    $('#result-total .alert').removeClass().addClass("alert alert-success");
     $('#result').show();
     window.location = '#result';
 }
@@ -522,8 +559,8 @@ function CollectData() {
     for (var i in value_fields) {
         var name = value_fields[i];
         if (typeof $('#' + name).highcharts() == "object") {
-            data[name + '_min'] = $('#' + name).highcharts().xAxis[0].min;
-            data[name + '_max'] = $('#' + name).highcharts().xAxis[0].max;
+            data[name + '_min'] = Math.floor($('#' + name).highcharts().xAxis[0].min);
+            data[name + '_max'] = Math.floor($('#' + name).highcharts().xAxis[0].max);
             if (!isIntColumn(name)) {
                 data[name + '_min'] /= 1000.0;
                 data[name + '_max'] /= 1000.0;
@@ -543,7 +580,6 @@ function CollectData() {
     return data;
 }
 
-A
 var select_cond = null;
 var noMoreData = false;
 var dataEntriesPerPage = 10;
@@ -583,19 +619,35 @@ function ShowFullData(data_arr) {
             + '</tr>';
     }
     $('#fulldata table tbody').html(html);
+    enablePrevNextButtons();
+}
+
+function enablePrevNextButtons() {
+   if (select_cond.limit_start <= 0)
+       $('#result-fulldata-prev').hide();
+   else
+       $('#result-fulldata-prev').show();
+
+   var total = $('#result-total-count') ? parseInt($('#result-total-count').html()) : 0;
+   if (select_cond.limit_start + dataEntriesPerPage >= total)
+       $('#result-fulldata-next').hide();
+   else
+       $('#result-fulldata-next').show();
 }
 
 function showDataPrev() {
-    if (select_cond && select_cond.limit_start >= dataEntriesPerPage) {
+    if (select_cond) {
         select_cond.limit_start -= dataEntriesPerPage;
         loadAndShowData(select_cond);
+        enablePrevNextButtons();
     }
 }
 
 function showDataNext() {
-    if (select_cond && !noMoreData) {
+    if (select_cond) {
         select_cond.limit_start += dataEntriesPerPage;
         loadAndShowData(select_cond);
+        enablePrevNextButtons();
     }
 }
 
