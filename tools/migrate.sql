@@ -30,7 +30,7 @@ CREATE TABLE caipiao.bet365 (
     recent10_host_lose SMALLINT(4),
     recent10_guest_goal SMALLINT(4),
     recent10_guest_lose SMALLINT(4)
-) CHARACTER SET utf8 ENGINE=MEMORY;
+) CHARACTER SET utf8 ENGINE=InnoDB;
 
 DROP FUNCTION IF EXISTS real_team_name;
 CREATE FUNCTION real_team_name (name VARCHAR(40) CHARACTER SET utf8)
