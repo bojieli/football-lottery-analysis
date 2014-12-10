@@ -94,7 +94,7 @@ function as_dish_tostring(n) {
             n = -n;
         }
         var real = (n - n % 500) / 1000.0;
-        return (negative ? '-' : '') + real + '/' + (n % 500) / 10.0);
+        return (negative ? '-' : '') + real + '/' + (n % 500) / 10.0;
     }
 }
 
@@ -139,7 +139,7 @@ try {
                     limit = parseInt(postdata.limit_num);
                 }
                 // security: never show more than 100 entries
-                if (limit > 100)
+                if (limit > 100 || isNaN(limit))
                     limit = 100;
                 if (limit < 1)
                     limit = 1;
