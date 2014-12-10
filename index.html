@@ -282,13 +282,20 @@ function hideZoomBar(chart) {
     $(chart.rangeSelector.divRelative).hide();
 };
 
+function isIntColumn(column) {
+    return (column.indexOf('recent') == 0);
+}
+
 function LoadChart(column, title) {
-    var intval = (column.indexOf('recent') == 0);
+
+    var intval = isIntColumn(column);
 
     $.getJSON('/api/stats/' + column, function (data) {
 
-        for (i in data) {
-            data[i][0] = data[i][0] * 1000;
+        if (!intval) {
+            for (i in data) {
+                data[i][0] = data[i][0] * 1000;
+            }
         }
 
         $('#' + column).highcharts('StockChart', {
@@ -298,16 +305,16 @@ function LoadChart(column, title) {
 
             tooltip: {
                 formatter: function() {
-                    return '<b>' + (this.x / 1000.0) + '</b> (' + this.y + ' 场)';
+                    return '<b>' + (intval ? this.x : this.x / 1000.0) + '</b> (' + this.y + ' 场)';
                 }
             },
 
             rangeSelector: {
                 inputEnabled: 1,
-                inputDateFormat: (intval ? '%S' : '%S.%L'),
-                inputEditDateFormat: (intval ? '%S' : '%S.%L'),
+                inputDateFormat: (intval ? '%L' : '%S.%L'),
+                inputEditDateFormat: (intval ? '%L' : '%S.%L'),
                 inputDateParser: function(value) {
-                    return value * 1000;
+                    return (intval ? value : value * 1000);
                 },
             },
 
@@ -322,10 +329,11 @@ function LoadChart(column, title) {
             }],
 
             xAxis: {
+                minRange: 0.9,
                 labels: {
                     maxStaggerLines: 1,
                     formatter: function () {
-                        return this.value / 1000.0;
+                        return (intval ? this.value : this.value / 1000.0);
                     }
                 }
             },
@@ -334,7 +342,7 @@ function LoadChart(column, title) {
                 xAxis: {
                     labels: {
                         formatter: function () {
-                            return this.value / 1000.0;
+                            return (intval ? this.value : this.value / 1000.0);
                         }
                     }
                 }
@@ -514,8 +522,12 @@ function CollectData() {
     for (var i in value_fields) {
         var name = value_fields[i];
         if (typeof $('#' + name).highcharts() == "object") {
-            data[name + '_min'] = $('#' + name).highcharts().xAxis[0].min / 1000.0;
-            data[name + '_max'] = $('#' + name).highcharts().xAxis[0].max / 1000.0;
+            data[name + '_min'] = $('#' + name).highcharts().xAxis[0].min;
+            data[name + '_max'] = $('#' + name).highcharts().xAxis[0].max;
+            if (!isIntColumn(name)) {
+                data[name + '_min'] /= 1000.0;
+                data[name + '_max'] /= 1000.0;
+            }
         }
     }
     for (var i in checkbox_fields) {
@@ -531,6 +543,7 @@ function CollectData() {
     return data;
 }
 
+A
 var select_cond = null;
 var noMoreData = false;
 var dataEntriesPerPage = 10;
