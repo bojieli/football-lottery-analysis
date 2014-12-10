@@ -283,6 +283,8 @@ function hideZoomBar(chart) {
 };
 
 function LoadChart(column, title) {
+    var intval = (column.indexOf('recent') == 0);
+
     $.getJSON('/api/stats/' + column, function (data) {
 
         for (i in data) {
@@ -302,8 +304,8 @@ function LoadChart(column, title) {
 
             rangeSelector: {
                 inputEnabled: 1,
-                inputDateFormat: '%S.%L',
-                inputEditDateFormat: '%S.%L',
+                inputDateFormat: (intval ? '%S' : '%S.%L'),
+                inputEditDateFormat: (intval ? '%S' : '%S.%L'),
                 inputDateParser: function(value) {
                     return value * 1000;
                 },
