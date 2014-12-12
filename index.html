@@ -385,6 +385,8 @@ function LoadChart(column, title) {
                 inputDateFormat: (intval ? '%o' : '%s.%l'),
                 inputEditDateFormat: (intval ? '%o' : '%s.%l'),
                 inputDateParser: function(value) {
+                    if (value < 0)
+                        value = 0;
                     return (intval ? value : value * 1000);
                 },
             },
@@ -400,7 +402,7 @@ function LoadChart(column, title) {
             }],
 
             xAxis: {
-                minRange: 0.5,
+                minRange: -0.001,
                 labels: {
                     formatter: function () {
                         return (intval ? this.value : this.value / 1000.0);
@@ -517,6 +519,9 @@ function InitChart() {
         },
         o: function (timestamp) {
             return Math.floor(timestamp);
+        },
+        O: function (timestamp) {
+            return Math.ceil(timestamp);
         },
         s: function (timestamp) {
             return Math.floor(timestamp / 1000);
